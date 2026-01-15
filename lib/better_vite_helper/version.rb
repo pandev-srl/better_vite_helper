@@ -1,0 +1,3 @@
+module BetterViteHelper
+  VERSION = "0.1.0"
+end
