@@ -1,28 +1,68 @@
 # BetterViteHelper
-Short description and motivation.
 
-## Usage
-How to use my plugin.
+Rails Engine providing Vite view helpers with automatic dev server detection and manifest-based asset resolution.
+
+## Requirements
+
+- Ruby >= 3.4.7
+- Rails >= 8.0.0, < 8.2
 
 ## Installation
-Add this line to your application's Gemfile:
+
+Add to your Gemfile:
 
 ```ruby
 gem "better_vite_helper"
 ```
 
-And then execute:
+Then run:
+
 ```bash
-$ bundle
+bundle install
+bin/rails generate better_vite_helper:install
 ```
 
-Or install it yourself as:
-```bash
-$ gem install better_vite_helper
+This copies `vite.config.js` and `postcss.config.js` to your application.
+
+## Usage
+
+### View Helpers
+
+```erb
+<%# Include JavaScript entry %>
+<%= vite_javascript_include_tag "application.js" %>
+
+<%# Include stylesheet (production only, Vite handles HMR in dev) %>
+<%= vite_stylesheet_link_tag "application.css" %>
+
+<%# Get asset path directly %>
+<%= vite_asset_path "application.js" %>
+
+<%# Check if dev server is running %>
+<% if vite_development? %>
+  <!-- dev mode -->
+<% end %>
 ```
 
-## Contributing
-Contribution directions go here.
+### Configuration
+
+```ruby
+# config/initializers/better_vite_helper.rb
+BetterViteHelper.configure do |config|
+  config.dev_server_url = "http://localhost:5173"  # default, or ENV["VITE_DEV_SERVER_URL"]
+  config.manifest_path = Rails.root.join("public/assets/.vite/manifest.json")  # default
+  config.asset_host = "https://cdn.example.com"  # optional, falls back to Rails.application.config.asset_host
+end
+```
+
+## Development
+
+```bash
+bundle install
+bundle exec rspec           # Run tests
+bin/rubocop -a              # Lint and auto-fix
+```
 
 ## License
+
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
