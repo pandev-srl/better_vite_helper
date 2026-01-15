@@ -65,6 +65,15 @@ module BetterViteHelper
       end
     end
 
+    def vite_image_path(source)
+      full_path = resolve_image_path(source)
+      vite_asset_path(full_path)
+    end
+
+    def vite_image_tag(source, **options)
+      image_tag(vite_image_path(source), **options)
+    end
+
     def reset_vite_manifest_cache!
       @vite_manifest = nil
     end
@@ -114,6 +123,12 @@ module BetterViteHelper
 
     def resolved_asset_host
       BetterViteHelper.configuration.asset_host || Rails.application.config.asset_host
+    end
+
+    def resolve_image_path(source)
+      return source if source.start_with?("app/", "/", "http://", "https://")
+
+      "#{BetterViteHelper.configuration.images_path}/#{source}"
     end
   end
 end

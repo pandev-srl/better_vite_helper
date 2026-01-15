@@ -58,4 +58,15 @@ RSpec.describe BetterViteHelper::Configuration do
       expect(configuration.asset_host).to eq("https://cdn.example.com")
     end
   end
+
+  describe "#images_path" do
+    it "defaults to app/assets/images" do
+      expect(configuration.images_path).to eq("app/assets/images")
+    end
+
+    it "can be customized" do
+      configuration.images_path = "app/images"
+      expect(configuration.images_path).to eq("app/images")
+    end
+  end
 end

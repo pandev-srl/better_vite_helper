@@ -316,6 +316,184 @@ RSpec.describe BetterViteHelper::ViewHelpers do
     end
   end
 
+  describe "#vite_image_path" do
+    context "in development mode" do
+      before do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("development"))
+        stub_request(:get, "http://localhost:5173/").to_return(status: 200)
+      end
+
+      it "returns dev server URL for short image name" do
+        expect(view_context.vite_image_path("logo.png"))
+          .to eq("http://localhost:5173/app/assets/images/logo.png")
+      end
+
+      it "returns dev server URL for full image path" do
+        expect(view_context.vite_image_path("app/assets/images/icons/arrow.svg"))
+          .to eq("http://localhost:5173/app/assets/images/icons/arrow.svg")
+      end
+
+      it "returns dev server URL for subdirectory image" do
+        expect(view_context.vite_image_path("icons/arrow.svg"))
+          .to eq("http://localhost:5173/app/assets/images/icons/arrow.svg")
+      end
+
+      it "handles various image formats" do
+        %w[png jpg jpeg gif svg webp avif ico].each do |ext|
+          expect(view_context.vite_image_path("test.#{ext}"))
+            .to eq("http://localhost:5173/app/assets/images/test.#{ext}")
+        end
+      end
+
+      it "passes through external URLs unchanged" do
+        expect(view_context.vite_image_path("https://example.com/logo.png"))
+          .to eq("http://localhost:5173/https://example.com/logo.png")
+      end
+
+      context "with custom images_path" do
+        before do
+          BetterViteHelper.configure { |c| c.images_path = "app/images" }
+        end
+
+        it "uses the custom images path" do
+          expect(view_context.vite_image_path("logo.png"))
+            .to eq("http://localhost:5173/app/images/logo.png")
+        end
+      end
+
+      context "with custom asset_host" do
+        before do
+          BetterViteHelper.configure { |c| c.asset_host = "https://cdn.example.com" }
+        end
+
+        it "uses the asset_host" do
+          expect(view_context.vite_image_path("logo.png"))
+            .to eq("https://cdn.example.com/app/assets/images/logo.png")
+        end
+      end
+    end
+
+    context "in production mode" do
+      let(:manifest_content) do
+        {
+          "app/javascript/application.js" => { "file" => "application-abc123.js" },
+          "app/assets/images/logo.png" => { "file" => "logo-def456.png" },
+          "app/assets/images/icons/arrow.svg" => { "file" => "arrow-ghi789.svg" }
+        }
+      end
+
+      before do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+        allow(File).to receive(:read).and_return(manifest_content.to_json)
+      end
+
+      it "returns manifest path for short image name" do
+        expect(view_context.vite_image_path("logo.png"))
+          .to eq("/assets/logo-def456.png")
+      end
+
+      it "returns manifest path for full image path" do
+        expect(view_context.vite_image_path("app/assets/images/icons/arrow.svg"))
+          .to eq("/assets/arrow-ghi789.svg")
+      end
+
+      it "returns manifest path for subdirectory image" do
+        expect(view_context.vite_image_path("icons/arrow.svg"))
+          .to eq("/assets/arrow-ghi789.svg")
+      end
+
+      it "raises error for missing image" do
+        expect { view_context.vite_image_path("missing.png") }
+          .to raise_error(/not found in manifest/)
+      end
+
+      context "with asset_host configured" do
+        before do
+          BetterViteHelper.configure { |c| c.asset_host = "https://cdn.example.com" }
+        end
+
+        it "includes the asset_host in the path" do
+          expect(view_context.vite_image_path("logo.png"))
+            .to eq("https://cdn.example.com/assets/logo-def456.png")
+        end
+      end
+    end
+  end
+
+  describe "#vite_image_tag" do
+    context "in development mode" do
+      before do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("development"))
+        stub_request(:get, "http://localhost:5173/").to_return(status: 200)
+      end
+
+      it "generates img tag with correct src" do
+        result = view_context.vite_image_tag("logo.png")
+        expect(result).to include('src="http://localhost:5173/app/assets/images/logo.png"')
+      end
+
+      it "passes through alt option" do
+        result = view_context.vite_image_tag("logo.png", alt: "Logo")
+        expect(result).to include('alt="Logo"')
+      end
+
+      it "passes through class option" do
+        result = view_context.vite_image_tag("logo.png", class: "logo-img")
+        expect(result).to include('class="logo-img"')
+      end
+
+      it "passes through size option" do
+        result = view_context.vite_image_tag("logo.png", size: "100x50")
+        expect(result).to include('width="100"')
+        expect(result).to include('height="50"')
+      end
+
+      it "supports data attributes" do
+        result = view_context.vite_image_tag("logo.png", data: { controller: "image" })
+        expect(result).to include('data-controller="image"')
+      end
+
+      it "supports multiple options together" do
+        result = view_context.vite_image_tag(
+          "logo.png",
+          alt: "Company Logo",
+          class: "header-logo",
+          width: 200,
+          data: { testid: "logo" }
+        )
+        expect(result).to include('alt="Company Logo"')
+        expect(result).to include('class="header-logo"')
+        expect(result).to include('width="200"')
+        expect(result).to include('data-testid="logo"')
+      end
+    end
+
+    context "in production mode" do
+      let(:manifest_content) do
+        {
+          "app/assets/images/logo.png" => { "file" => "logo-def456.png" }
+        }
+      end
+
+      before do
+        allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+        allow(File).to receive(:read).and_return(manifest_content.to_json)
+      end
+
+      it "generates img tag with hashed src" do
+        result = view_context.vite_image_tag("logo.png")
+        expect(result).to include('src="/assets/logo-def456.png"')
+      end
+
+      it "generates img tag with all options" do
+        result = view_context.vite_image_tag("logo.png", alt: "Logo", class: "img-fluid")
+        expect(result).to include('src="/assets/logo-def456.png"')
+        expect(result).to include('alt="Logo"')
+        expect(result).to include('class="img-fluid"')
+      end
+    end
+  end
+
   describe "#reset_vite_manifest_cache!" do
     let(:manifest_content) { { "test" => { "file" => "test.js" } } }
 
