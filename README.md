@@ -44,6 +44,23 @@ This copies `vite.config.js` and `postcss.config.js` to your application.
 <% end %>
 ```
 
+### Image Helpers
+
+```erb
+<%# Generate img tag with Vite-resolved src %>
+<%= vite_image_tag "logo.png", alt: "Logo", class: "logo" %>
+
+<%# Subdirectory images %>
+<%= vite_image_tag "icons/arrow.svg", alt: "Arrow" %>
+
+<%# Get image path directly %>
+<%= vite_image_path "logo.png" %>
+<%# Dev:  http://localhost:5173/app/assets/images/logo.png %>
+<%# Prod: /assets/logo-abc123.png (with CDN if configured) %>
+```
+
+Images in `app/assets/images/` are automatically included in the Vite build via `import.meta.glob`.
+
 ### Configuration
 
 ```ruby
@@ -52,6 +69,7 @@ BetterViteHelper.configure do |config|
   config.dev_server_url = "http://localhost:5173"  # default, or ENV["VITE_DEV_SERVER_URL"]
   config.manifest_path = Rails.root.join("public/assets/.vite/manifest.json")  # default
   config.asset_host = "https://cdn.example.com"  # optional, falls back to Rails.application.config.asset_host
+  config.images_path = "app/assets/images"  # default
 end
 ```
 
