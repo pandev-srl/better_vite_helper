@@ -1,5 +1,5 @@
 {
-  "app/assets/javascripts/application.js": {
+  "app/javascript/application.js": {
     "file": "application-abc123.js",
     "isEntry": true
   },

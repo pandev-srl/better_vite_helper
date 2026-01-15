@@ -102,7 +102,7 @@ RSpec.describe BetterViteHelper::ViewHelpers do
   describe "#vite_manifest" do
     let(:manifest_content) do
       {
-        "app/assets/javascripts/application.js" => {
+        "app/javascript/application.js" => {
           "file" => "application-abc123.js",
           "isEntry" => true
         },
@@ -185,7 +185,7 @@ RSpec.describe BetterViteHelper::ViewHelpers do
 
       it "returns dev server URL for application.js" do
         expect(view_context.vite_asset_path("application.js"))
-          .to eq("http://localhost:5173/app/assets/javascripts/application.js")
+          .to eq("http://localhost:5173/app/javascript/application.js")
       end
 
       it "returns dev server URL for application.css" do
@@ -205,7 +205,7 @@ RSpec.describe BetterViteHelper::ViewHelpers do
 
         it "uses the asset_host" do
           expect(view_context.vite_asset_path("application.js"))
-            .to eq("https://cdn.example.com/app/assets/javascripts/application.js")
+            .to eq("https://cdn.example.com/app/javascript/application.js")
         end
       end
     end
@@ -213,7 +213,7 @@ RSpec.describe BetterViteHelper::ViewHelpers do
     context "in production mode" do
       let(:manifest_content) do
         {
-          "app/assets/javascripts/application.js" => { "file" => "application-abc123.js" },
+          "app/javascript/application.js" => { "file" => "application-abc123.js" },
           "app/assets/stylesheets/application.css" => { "file" => "application-def456.css" }
         }
       end
@@ -289,7 +289,7 @@ RSpec.describe BetterViteHelper::ViewHelpers do
       let(:manifest_content) do
         {
           "app/assets/stylesheets/application.css" => { "file" => "application-def456.css" },
-          "app/assets/javascripts/application.js" => { "file" => "application-abc123.js" }
+          "app/javascript/application.js" => { "file" => "application-abc123.js" }
         }
       end
 

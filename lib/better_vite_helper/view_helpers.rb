@@ -79,7 +79,7 @@ module BetterViteHelper
       base_url = resolved_asset_host || BetterViteHelper.configuration.dev_server_url
       case entry_name
       when "application.js"
-        "#{base_url}/app/assets/javascripts/application.js"
+        "#{base_url}/app/javascript/application.js"
       when "application.css"
         "#{base_url}/app/assets/stylesheets/application.css"
       else
@@ -96,7 +96,7 @@ module BetterViteHelper
     def resolve_manifest_key(entry_name)
       case entry_name
       when "application.js"
-        "app/assets/javascripts/application.js"
+        "app/javascript/application.js"
       when "application.css"
         "app/assets/stylesheets/application.css"
       else

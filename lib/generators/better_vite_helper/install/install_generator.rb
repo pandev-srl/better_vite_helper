@@ -17,15 +17,18 @@ module BetterViteHelper
         copy_file "postcss.config.js", "postcss.config.js"
       end
 
+      def copy_application_js
+        copy_file "application.js", "app/javascript/application.js"
+      end
+
       def show_post_install_message
         say ""
         say "BetterViteHelper installed successfully!", :green
         say ""
         say "Next steps:"
         say "  1. Run 'yarn add -D vite' to install Vite"
-        say "  2. Add your JavaScript entry point at app/assets/javascripts/application.js"
-        say "  3. Add your CSS entry point at app/assets/stylesheets/application.css"
-        say "  4. Run 'yarn vite' for development or 'yarn vite build' for production"
+        say "  2. Create your CSS entry point at app/assets/stylesheets/application.css"
+        say "  3. Run 'yarn vite' for development or 'yarn vite build' for production"
         say ""
       end
     end
