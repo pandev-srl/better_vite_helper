@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
-$: << File.expand_path("../test", __dir__)
+# frozen_string_literal: true
 
 require "bundler/setup"
-require "rails/plugin/test"
+
+# Run RSpec - default to spec directory
+ARGV.push("spec") if ARGV.empty? || ARGV.all? { |arg| arg.start_with?("-") }
+load Gem.bin_path("rspec-core", "rspec")
