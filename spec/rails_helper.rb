@@ -11,6 +11,9 @@ require_relative "dummy/config/environment"
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 
 require "rspec/rails"
+require "webmock/rspec"
+
+WebMock.disable_net_connect!(allow_localhost: false)
 
 RSpec.configure do |config|
   # Use transactional fixtures if you have ActiveRecord

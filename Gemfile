@@ -16,3 +16,5 @@ gem "rubocop-rails-omakase", require: false
 # Testing
 gem "rspec-rails", "~> 7.0"
 gem "simplecov", require: false
+gem "webmock", "~> 3.24"
+gem "generator_spec", "~> 0.10"
