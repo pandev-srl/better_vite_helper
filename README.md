@@ -22,7 +22,26 @@ bundle install
 bin/rails generate better_vite_helper:install
 ```
 
-This copies `vite.config.js` and `postcss.config.js` to your application.
+The generator automatically:
+- Creates `package.json` if missing (with `dev` and `build` scripts)
+- Installs Vite and Tailwind CSS v4 via yarn (or npm)
+- Copies `vite.config.js` and `postcss.config.js`
+- Copies `app/javascript/application.js` with image glob imports
+- Copies `app/assets/stylesheets/application.css` with Tailwind CSS import
+- Updates `app/views/layouts/application.html.erb` with Vite helpers
+- Updates `.gitignore` with Node/Yarn/Vite entries
+
+### Generator Options
+
+```bash
+bin/rails generate better_vite_helper:install --skip-install  # Skip npm dependencies
+bin/rails generate better_vite_helper:install --skip-layout   # Skip layout modification
+```
+
+| Option | Description |
+|--------|-------------|
+| `--skip-install` | Skip installing Vite via yarn/npm |
+| `--skip-layout` | Skip updating application layout with Vite helpers |
 
 ## Usage
 

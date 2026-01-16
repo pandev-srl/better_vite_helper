@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    better_vite_helper (0.1.0)
+    better_vite_helper (0.2.0)
       rails (>= 8.0.0, < 8.2)
 
 GEM
