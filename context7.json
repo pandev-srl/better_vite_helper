@@ -1,9 +1,16 @@
 {
+  "url": "https://context7.com/pandev-srl/better_vite_helper",
+  "public_key": "pk_Awf4DOPRBuCB3anb3ryh4",
   "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "BetterViteHelper",
   "description": "Rails Engine providing Vite view helpers with automatic dev server detection and manifest-based asset resolution",
-  "folders": ["lib", "spec"],
-  "excludeFolders": ["spec/dummy"],
+  "folders": [
+    "lib",
+    "spec"
+  ],
+  "excludeFolders": [
+    "spec/dummy"
+  ],
   "excludeFiles": [],
   "rules": [
     "Use vite_javascript_include_tag for JavaScript entry points",
