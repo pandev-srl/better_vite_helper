@@ -7,6 +7,22 @@ Rails Engine providing Vite view helpers with automatic dev server detection and
 - Ruby >= 3.4.7
 - Rails >= 8.0.0, < 8.2
 
+## Quick Start
+
+```bash
+# Add to Gemfile
+bundle add better_vite_helper
+
+# Run the generator
+bin/rails generate better_vite_helper:install
+
+# Start development (two terminals)
+yarn dev          # Terminal 1: Vite dev server
+bin/rails server  # Terminal 2: Rails server
+```
+
+Visit `http://localhost:3000` - assets are served via Vite with HMR.
+
 ## Installation
 
 Add to your Gemfile:
@@ -43,6 +59,48 @@ bin/rails generate better_vite_helper:install --skip-layout   # Skip layout modi
 | `--skip-install` | Skip installing Vite via yarn/npm |
 | `--skip-layout` | Skip updating application layout with Vite helpers |
 
+## Development Workflow
+
+### Starting Development
+
+```bash
+# Terminal 1: Start Vite dev server with HMR
+yarn dev
+
+# Terminal 2: Start Rails server
+bin/rails server
+```
+
+### Building for Production
+
+```bash
+# Build assets with Vite
+yarn build
+
+# Assets are output to public/assets/ with manifest.json
+```
+
+### Layout Example
+
+A typical `application.html.erb` after installation:
+
+```erb
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= vite_stylesheet_link_tag "application.css" %>
+  </head>
+  <body>
+    <%= yield %>
+    <%= vite_javascript_include_tag "application.js" %>
+  </body>
+</html>
+```
+
 ## Usage
 
 ### View Helpers
@@ -50,16 +108,24 @@ bin/rails generate better_vite_helper:install --skip-layout   # Skip layout modi
 ```erb
 <%# Include JavaScript entry %>
 <%= vite_javascript_include_tag "application.js" %>
+<%# Output (dev):  <script type="module" src="http://localhost:5173/app/javascript/application.js"></script> %>
+<%# Output (prod): <script type="module" src="/assets/application-abc123.js"></script> %>
 
 <%# Include stylesheet (production only, Vite handles HMR in dev) %>
 <%= vite_stylesheet_link_tag "application.css" %>
+<%# Output (dev):  (empty - Vite injects styles via JS) %>
+<%# Output (prod): <link rel="stylesheet" href="/assets/application-xyz789.css"> %>
 
 <%# Get asset path directly %>
 <%= vite_asset_path "application.js" %>
+<%# Output (dev):  http://localhost:5173/app/javascript/application.js %>
+<%# Output (prod): /assets/application-abc123.js %>
 
 <%# Check if dev server is running %>
 <% if vite_development? %>
-  <!-- dev mode -->
+  <!-- Development mode: Vite dev server is active -->
+<% else %>
+  <!-- Production mode: Using built assets -->
 <% end %>
 ```
 
@@ -68,9 +134,14 @@ bin/rails generate better_vite_helper:install --skip-layout   # Skip layout modi
 ```erb
 <%# Generate img tag with Vite-resolved src %>
 <%= vite_image_tag "logo.png", alt: "Logo", class: "logo" %>
+<%# Output (dev):  <img src="http://localhost:5173/app/assets/images/logo.png" alt="Logo" class="logo"> %>
+<%# Output (prod): <img src="/assets/logo-abc123.png" alt="Logo" class="logo"> %>
 
 <%# Subdirectory images %>
 <%= vite_image_tag "icons/arrow.svg", alt: "Arrow" %>
+
+<%# With size attribute %>
+<%= vite_image_tag "hero.jpg", alt: "Hero", size: "800x600" %>
 
 <%# Get image path directly %>
 <%= vite_image_path "logo.png" %>
@@ -91,6 +162,94 @@ BetterViteHelper.configure do |config|
   config.images_path = "app/assets/images"  # default
 end
 ```
+
+## API Reference
+
+### JavaScript and CSS Helpers
+
+#### `vite_javascript_include_tag(entry, **options)`
+
+Generates a `<script type="module">` tag for the specified entry point.
+
+```erb
+<%= vite_javascript_include_tag "application.js" %>
+<%= vite_javascript_include_tag "admin.js", defer: true, data: { turbo_track: "reload" } %>
+```
+
+#### `vite_stylesheet_link_tag(entry, **options)`
+
+Generates a `<link rel="stylesheet">` tag. Returns empty string in development (Vite injects styles via JavaScript for HMR).
+
+```erb
+<%= vite_stylesheet_link_tag "application.css" %>
+<%= vite_stylesheet_link_tag "admin.css", media: "print" %>
+```
+
+#### `vite_asset_path(entry)`
+
+Returns the resolved URL for an asset entry.
+
+```erb
+<%= vite_asset_path "application.js" %>
+# => "http://localhost:5173/app/javascript/application.js" (dev)
+# => "/assets/application-abc123.js" (prod)
+```
+
+### Image Helpers
+
+#### `vite_image_tag(source, **options)`
+
+Generates an `<img>` tag with Vite-resolved src. Accepts all standard Rails image_tag options.
+
+```erb
+<%= vite_image_tag "logo.png", alt: "Logo" %>
+<%= vite_image_tag "icons/menu.svg", alt: "Menu", class: "icon", size: "24x24" %>
+<%= vite_image_tag "photos/hero.jpg", alt: "Hero", data: { controller: "lightbox" } %>
+```
+
+#### `vite_image_path(source)`
+
+Returns the resolved URL for an image.
+
+```erb
+<%= vite_image_path "logo.png" %>
+# => "http://localhost:5173/app/assets/images/logo.png" (dev)
+# => "/assets/logo-abc123.png" (prod)
+```
+
+### Detection Helpers
+
+#### `vite_development?`
+
+Returns `true` if in development environment AND Vite dev server is running.
+
+```erb
+<% if vite_development? %>
+  <%= javascript_tag nonce: true do %>
+    console.log("Development mode with HMR enabled");
+  <% end %>
+<% end %>
+```
+
+#### `vite_dev_server_running?`
+
+Returns `true` if the Vite dev server is responding. Result is cached.
+
+```ruby
+if vite_dev_server_running?
+  # Dev server is active
+end
+```
+
+### Cache Management
+
+#### `reset_vite_dev_server_cache!`
+
+Clears the cached dev server status. Useful in tests.
+
+#### `reset_vite_manifest_cache!`
+
+Clears the cached manifest. Useful when manifest changes during runtime.
 
 ## Development
 
